@@ -4,11 +4,11 @@
 
 Al iniciar una sesión en este proyecto, leer los siguientes archivos de memoria:
 
-- `../memory/MEMORY.md` (índice)
-- `../memory/user_cristian.md`
-- `../memory/project_thesis_overview.md`
-- `../memory/project_methodology_phases.md`
-- `../memory/project_proyecto5_structure.md`
+- `memory/MEMORY.md` (índice)
+- `memory/user_cristian.md`
+- `memory/project_thesis_overview.md`
+- `memory/project_methodology_phases.md`
+- `memory/project_proyecto5_structure.md`
 
 ---
 

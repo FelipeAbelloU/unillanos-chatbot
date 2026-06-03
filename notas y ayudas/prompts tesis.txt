@@ -1,0 +1,10 @@
+Prompts
+
+####### Para cerrar y guardar conocimiento en cada sesion:
+Actualiza los archivos .md que correspondan en la carpeta local "memory", con el conocimiento actualizado que hemos manejado en esta sesion
+
+####### Para limpiar sesion (40%+):
+Actualiza los archivos .md que correspondan en la carpeta local "memory", con el conocimiento actualizado que hemos manejado en esta sesion y dame un prompt para dartelo despues de hacer clear y que podamos continuar en una nueva sesion el trabajo que estabamos haciendo sin perder contexto significativo.
+
+
+####### 
