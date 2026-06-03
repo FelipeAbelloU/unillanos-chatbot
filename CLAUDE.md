@@ -1,4 +1,4 @@
-# CLAUDE.md — Proyecto5
+# CLAUDE.md — CANUTO
 
 ## Contexto persistente — leer al inicio de cada sesión
 
@@ -14,12 +14,10 @@ Al iniciar una sesión en este proyecto, leer los siguientes archivos de memoria
 
 ## Identidad del proyecto
 
-**Proyecto5** es un asistente conversacional para normativa universitaria de la Universidad de los Llanos (Unillanos).
+**CANUTO** (Chatbot Asistente Normativo Universidad de los Llanos) es un asistente conversacional para normativa universitaria de la Universidad de los Llanos (Unillanos).
 Es un proyecto **completamente independiente**. No depende de ningún otro proyecto del directorio `Tesis/`.
 
 **Directorio raíz:** `C:\Users\Equipo\OneDrive\Documentos\Tesis\Proyecto5\`
-
-Todo el trabajo de este proyecto vive aquí. Nunca crear archivos fuera de esta carpeta en nombre de Proyecto5.
 
 ---
 
@@ -30,15 +28,15 @@ El sistema **no usa RAG**. El modelo aprende la normativa durante el entrenamien
 Pipeline completo:
 
 ```
-PDFs (carpeta ../PDF)
+PDFs (carpeta PDF/)
   ↓ scripts/extract_text.py
 texto plano en data/extracted/
   ↓ scripts/build_dataset.py
 pares QA en data/dataset/dataset_alpaca.json
-  ↓ [entrenamiento externo — herramienta separada]
+  ↓ scripts/colab_train.py (Google Colab T4)
 checkpoint del modelo (formato HuggingFace)
   ↓ config/config.yaml → model.checkpoint_path
-Proyecto5 carga el checkpoint y expone API + UI
+CANUTO carga el checkpoint y expone API + UI Django
 ```
 
 ---
@@ -46,7 +44,7 @@ Proyecto5 carga el checkpoint y expone API + UI
 ## Estructura del proyecto
 
 ```
-Proyecto5/
+CANUTO/
 ├── CLAUDE.md
 ├── config/
 │   ├── config.yaml         ← configuración principal (checkpoint_path, device, etc.)
@@ -69,15 +67,24 @@ Proyecto5/
 │   └── api/                ← FastAPI REST para integración con SIRIUS
 │       └── app.py          ← endpoints /query, /health, /reset
 ├── ui/
-│   └── app.py              ← interfaz web Gradio (localhost:7860)
+│   ├── app.py              ← interfaz Gradio alternativa (localhost:7860)
+│   └── django_chatbot/     ← interfaz web principal CANUTO (Django)
+│       └── run.py          ← python ui/django_chatbot/run.py
 ├── scripts/
 │   ├── extract_text.py     ← paso 1: PDF → .txt
 │   ├── build_dataset.py    ← paso 2: .txt → dataset QA JSON
+│   ├── add_knowledge.py    ← agrega pares QA curados al dataset
+│   ├── colab_train.py      ← guía de entrenamiento en Google Colab
+│   ├── train.py            ← entrenamiento en CPU (lento, alternativa)
+│   ├── test_model.py       ← pruebas automáticas del modelo (8 preguntas)
 │   └── chat_cli.py         ← chat por terminal con el modelo
 ├── data/
 │   ├── extracted/          ← textos planos extraídos (generados por extract_text.py)
-│   └── dataset/            ← dataset QA JSON (generado por build_dataset.py)
-├── venv/                   ← entorno virtual Python
+│   ├── dataset/            ← dataset QA JSON (generado por build_dataset.py)
+│   └── checkpoints/        ← checkpoints entrenados (gitignored)
+├── PDF/                    ← documentos PDF fuente (34 PDFs de Unillanos)
+├── notas y ayudas/         ← guías de uso y scripts de referencia
+├── venv/                   ← entorno virtual Python (gitignored)
 ├── requirements.txt
 └── .env.example
 ```
@@ -90,19 +97,25 @@ Proyecto5/
 # Activar entorno virtual
 venv\Scripts\activate
 
+# Interfaz web CANUTO (localhost:8000) — PRINCIPAL
+python ui\django_chatbot\run.py
+
+# Chat por terminal (requiere checkpoint configurado)
+python scripts\chat_cli.py
+
 # Paso 1: extraer texto de los PDFs
 python scripts\extract_text.py
 
 # Paso 2: generar dataset de fine-tuning
 python scripts\build_dataset.py --mode heuristic
 
-# Chat por terminal (requiere checkpoint configurado)
-python scripts\chat_cli.py
+# Agregar conocimiento curado al dataset
+python scripts\add_knowledge.py
 
-# Interfaz web Gradio (localhost:7860)
-python ui\app.py
+# Pruebas automáticas del modelo
+python scripts\test_model.py
 
-# API REST (localhost:8000, docs en /docs)
+# API REST para SIRIUS (localhost:8000/docs)
 uvicorn src.api.app:app --reload --port 8000
 ```
 
@@ -113,7 +126,7 @@ uvicorn src.api.app:app --reload --port 8000
 Editar `config/config.yaml`:
 ```yaml
 model:
-  checkpoint_path: "ruta/al/checkpoint"  # directorio con config.json, tokenizer, etc.
+  checkpoint_path: "data/checkpoints/unillanos-v2"
   device: cpu    # o cuda en workstation
 ```
 
@@ -131,6 +144,7 @@ model:
 ## Notas importantes
 
 - No hay ChromaDB ni vector store — el modelo fine-tuneado tiene el conocimiento internalizado.
-- Mientras no haya checkpoint entrenado, el chat muestra un mensaje explicativo.
-- El dataset en `data/dataset/` es el insumo para el entrenamiento (herramienta externa).
-- La API FastAPI está diseñada como microservicio para SIRIUS.
+- El entrenamiento se realiza en Google Colab (T4 GPU, ~20 min). Ver `scripts/colab_train.py`.
+- El dataset en `data/dataset/` es el insumo para el entrenamiento.
+- La API FastAPI en `src/api/` está diseñada como microservicio para SIRIUS.
+- La interfaz principal es Django en `ui/django_chatbot/`. Gradio (`ui/app.py`) es alternativa.
